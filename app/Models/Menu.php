@@ -21,7 +21,7 @@ class Menu extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
-    
+
     /**
      * Dapatkan kategori yang dimiliki menu.
      * Ini adalah method yang hilang/salah.

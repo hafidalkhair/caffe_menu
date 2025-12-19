@@ -25,16 +25,16 @@ class MenuController extends Controller
             ->join('order_items', 'menus.id', '=', 'order_items.menu_id')
             // Join dengan tabel orders untuk filter status 'completed' dan tanggal
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            
+
             ->where('orders.status', 'completed') // HANYA hitung pesanan yang berhasil
             ->where('orders.created_at', '>=', $startDate)
-            
+
             // Menjumlahkan kuantitas dari order_items dan memilih kolom menu
             ->selectRaw('SUM(order_items.quantity) as total_sold')
-            
+
             // Grouping: Harus menyertakan semua kolom non-aggregate
             ->groupBy('menus.id', 'menus.name', 'menus.description', 'menus.price', 'menus.image', 'menus.category_id', 'menus.created_at', 'menus.updated_at')
-            
+
             ->orderByDesc('total_sold')
             ->limit(10) // Ambil 10 menu teratas
             ->with('category')
@@ -44,7 +44,7 @@ class MenuController extends Controller
         // --- 2. Logika Grouped Menus (Tampilan Kategori) ---
         // PENTING: Eager loading 'with(category)' sudah benar.
         $menus = Menu::with('category')->get();
-        
+
         $groupedMenus = $menus->groupBy(function($menu) {
             return $menu->category->name ?? 'Lain-lain';
         });
