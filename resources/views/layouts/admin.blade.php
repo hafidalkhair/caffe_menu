@@ -7,172 +7,190 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin Dashboard') | CafeKU</title>
 
-    {{-- Scripts dan Styles Eksternal --}}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    {{-- AlpineJS --}}
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
-
-    {{-- SweetAlert2 --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    {{-- Font Google: Plus Jakarta Sans (Sangat modern & mudah dibaca) --}}
+    {{-- Fonts & Icons --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    {{-- Tailwind & Plugins --}}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f3f4f6; /* Gray-100 */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        [x-cloak] { display: none !important; }
+
+        /* Smooth Transition */
+        .transition-width { transition-property: width, transform; transition-duration: 300ms; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Custom Scrollbar */
+        .sidebar-scroll::-webkit-scrollbar { width: 5px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 20px; }
+
+        /* Active Link Style */
+        .nav-active {
+            background-color: #4f46e5; /* Indigo-600 */
+            color: white !important;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
         }
-
-        /* --- SIDEBAR STYLING --- */
-        .sidebar {
-            background-color: #1e1b4b; /* Indigo-950 (Dark Theme) */
-            color: #e0e7ff; /* Indigo-100 */
-        }
-
-        .nav-link {
-            transition: all 0.2s ease-in-out;
-            border-radius: 0.75rem; /* Rounded-xl */
-            margin: 0.25rem 1rem;
-        }
-
-        .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            transform: translateX(4px);
-        }
-
-        .nav-link.active {
-            background: linear-gradient(to right, #6366f1, #4f46e5); /* Indigo Gradient */
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
-        }
-
-        /* --- CONTENT STYLING --- */
-        .main-content {
-            transition: margin-left 0.3s ease;
-        }
-
-        /* --- CARD & GENERAL UI --- */
-        .glass-header {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        /* Scrollbar Halus */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .sidebar::-webkit-scrollbar-thumb { background: #4338ca; }
-
-        /* Animasi Masuk Halaman */
-        .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; transform: translateY(10px); }
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-
-        /* Notification Badge Pulse */
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-        .badge-pulse { animation: pulse-red 2s infinite; }
+        .nav-active i { color: white !important; }
     </style>
 </head>
 
-<body class="antialiased text-gray-800">
+<body class="text-slate-800 antialiased bg-slate-50">
 
-    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+    {{--
+        STATE MANAGEMENT (AlpineJS)
+        isSidebarOpen: Untuk Mobile (Slide in/out)
+        isSidebarCollapsed: Untuk Desktop (Lebar/Kecil)
+    --}}
+    <div x-data="{
+            isSidebarOpen: false,
+            isSidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+            toggleSidebar() {
+                if (window.innerWidth >= 1024) {
+                    this.isSidebarCollapsed = !this.isSidebarCollapsed;
+                    localStorage.setItem('sidebarCollapsed', this.isSidebarCollapsed);
+                } else {
+                    this.isSidebarOpen = !this.isSidebarOpen;
+                }
+            }
+         }"
+         class="flex h-screen overflow-hidden">
 
-        {{-- MOBILE SIDEBAR OVERLAY --}}
-        <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-20 md:hidden glass-panel"></div>
+        {{-- MOBILE BACKDROP --}}
+        <div x-show="isSidebarOpen" @click="isSidebarOpen = false" x-transition.opacity
+             class="fixed inset-0 z-20 bg-slate-900/60 backdrop-blur-sm lg:hidden"></div>
 
         {{-- SIDEBAR --}}
-        <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="sidebar fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto transition duration-300 transform md:translate-x-0 md:static md:inset-0 shadow-2xl flex flex-col">
+        <aside :class="[
+                    isSidebarCollapsed ? 'lg:w-20' : 'lg:w-72',
+                    isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+               ]"
+               class="fixed inset-y-0 left-0 z-30 flex flex-col bg-slate-900 text-white transition-width duration-300 shadow-2xl lg:static">
 
-            {{-- Logo Area --}}
-            <div class="flex items-center justify-center h-20 border-b border-indigo-900/50 bg-indigo-950/50">
-                <div class="flex items-center gap-3">
-                    <div class="bg-indigo-500 text-white p-2 rounded-lg shadow-lg">
+            {{-- HEADER SIDEBAR (LOGO) --}}
+            <div class="flex items-center h-20 px-6 border-b border-slate-800 bg-slate-950/30"
+                 :class="isSidebarCollapsed ? 'justify-center px-0' : 'justify-between'">
+
+                <div class="flex items-center gap-3 overflow-hidden whitespace-nowrap">
+                    <div class="flex-shrink-0 bg-indigo-600 p-2 rounded-lg">
                         <i class="fas fa-mug-hot text-xl"></i>
                     </div>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-tight text-white">CafeKU</h1>
-                        <p class="text-[10px] text-indigo-300 uppercase tracking-widest font-semibold">Admin Panel</p>
+                    {{-- Teks Logo (Hilang saat collapsed) --}}
+                    <div class="transition-opacity duration-200"
+                         :class="isSidebarCollapsed ? 'hidden opacity-0' : 'block opacity-100'">
+                        <h1 class="text-xl font-bold tracking-tight">CafeKU</h1>
                     </div>
                 </div>
+
+                {{-- Close Button (Mobile Only) --}}
+                <button @click="isSidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
-            {{-- Navigation --}}
-            <nav class="flex-1 px-2 py-6 space-y-1">
+            {{-- NAVIGATION LINKS --}}
+            <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1 sidebar-scroll">
+
+                {{-- Helper: Fungsi Render Menu Item --}}
+                @php
+                    function renderMenu($route, $icon, $label, $collapsedRef, $activePattern = null) {
+                        $isActive = request()->routeIs($route) || ($activePattern && request()->routeIs($activePattern));
+                        $activeClass = $isActive ? 'nav-active' : 'text-slate-400 hover:bg-slate-800 hover:text-white';
+
+                        echo '
+                        <a href="'.route($route).'"
+                           class="group relative flex items-center px-3 py-3 rounded-xl transition-all duration-200 '.$activeClass.'"
+                           title="'.$label.'">
+
+                            <div class="flex-shrink-0 w-6 text-center">
+                                <i class="'.$icon.' text-lg transition-transform group-hover:scale-110"></i>
+                            </div>
+
+                            <span class="ml-3 font-medium whitespace-nowrap transition-all duration-300 origin-left"
+                                  :class="'.$collapsedRef.' ? \'hidden opacity-0 w-0\' : \'block opacity-100 w-auto\'">
+                                '.$label.'
+                            </span>
+
+                            <div x-show="'.$collapsedRef.'" style="display: none"
+                                 class="absolute left-16 z-50 px-3 py-2 text-xs font-bold text-white bg-slate-900 rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border border-slate-700 whitespace-nowrap">
+                                '.$label.'
+                            </div>
+                        </a>
+                        ';
+                    }
+
+                    function renderLabel($text, $collapsedRef) {
+                        echo '
+                        <div class="px-3 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider transition-opacity duration-300"
+                             :class="'.$collapsedRef.' ? \'hidden\' : \'block\'">
+                            '.$text.'
+                        </div>
+                        <div class="my-4 border-t border-slate-800" :class="'.$collapsedRef.' ? \'block\' : \'hidden\'"></div>
+                        ';
+                    }
+                @endphp
 
                 {{-- Dashboard --}}
-                <a href="{{ route('admin.dashboard') }}" class="nav-link flex items-center px-4 py-3 {{ request()->routeIs('admin.dashboard') ? 'active' : 'text-indigo-100' }}">
-                    <i class="fas fa-home w-6 text-center text-lg"></i>
-                    <span class="ml-3 font-medium">Dashboard</span>
-                </a>
+                {{ renderMenu('admin.dashboard', 'fas fa-th-large', 'Dashboard', 'isSidebarCollapsed') }}
 
-                <p class="px-6 mt-6 mb-2 text-xs font-bold text-indigo-400 uppercase tracking-wider">Kasir & Pesanan</p>
+                {{ renderLabel('Aktivitas', 'isSidebarCollapsed') }}
 
-                {{-- Pesanan Aktif (PENTING) --}}
-                <a href="{{ route('admin.orders.index') }}" class="nav-link flex items-center px-4 py-3 {{ request()->routeIs('admin.orders.index') && !request()->routeIs('admin.orders.history') ? 'active' : 'text-indigo-100' }}">
-                    <div class="relative">
-                        <i class="fas fa-clipboard-list w-6 text-center text-lg"></i>
-                        {{-- Dot indikator pesanan baru di sidebar --}}
-                        <span id="sidebar-notification-dot" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#1e1b4b]"></span>
+                {{-- Pesanan Masuk (Custom Badge) --}}
+                <a href="{{ route('admin.orders.index') }}"
+                   class="group relative flex items-center px-3 py-3 rounded-xl transition-all duration-200 {{ (request()->routeIs('admin.orders.index') && !request()->routeIs('admin.orders.history')) ? 'nav-active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <div class="flex-shrink-0 w-6 text-center relative">
+                        <i class="fas fa-clipboard-list text-lg"></i>
+                        {{-- Dot Merah Notifikasi --}}
+                        <span id="sidebar-notification-dot" class="hidden absolute -top-1.5 -right-1.5 w-3 h-3 bg-red-500 border-2 border-slate-900 rounded-full"></span>
                     </div>
-                    <span class="ml-3 font-medium">Pesanan Masuk</span>
+                    <span class="ml-3 font-medium whitespace-nowrap" :class="isSidebarCollapsed ? 'hidden' : 'block'">
+                        Pesanan Masuk
+                    </span>
+
+                    {{-- Tooltip --}}
+                    <div x-show="isSidebarCollapsed" style="display: none" class="absolute left-16 z-50 px-3 py-2 text-xs font-bold text-white bg-slate-900 rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none border border-slate-700">Pesanan</div>
                 </a>
 
-                <a href="{{ route('admin.orders.history') }}" class="nav-link flex items-center px-4 py-3 {{ request()->routeIs('admin.orders.history') ? 'active' : 'text-indigo-100' }}">
-                    <i class="fas fa-history w-6 text-center text-lg"></i>
-                    <span class="ml-3 font-medium">Riwayat Transaksi</span>
-                </a>
+                {{-- History --}}
+                @if(Auth::user()->role === 'admin' || Auth::user()->role === 'dapur')
+                    {{ renderMenu('admin.orders.history', 'fas fa-history', 'Riwayat Transaksi', 'isSidebarCollapsed') }}
+                @endif
 
-                <p class="px-6 mt-6 mb-2 text-xs font-bold text-indigo-400 uppercase tracking-wider">Manajemen</p>
+                {{ renderLabel('Produk', 'isSidebarCollapsed') }}
+                {{ renderMenu('admin.menus.index', 'fas fa-hamburger', 'Menu & Produk', 'isSidebarCollapsed', 'admin.menus.*') }}
 
-                <a href="{{ route('admin.menus.index') }}" class="nav-link flex items-center px-4 py-3 {{ request()->routeIs('admin.menus.*') ? 'active' : 'text-indigo-100' }}">
-                    <i class="fas fa-hamburger w-6 text-center text-lg"></i>
-                    <span class="ml-3 font-medium">Menu & Produk</span>
-                </a>
+                {{-- KHUSUS ADMIN --}}
+                @if(Auth::user()->role === 'admin')
+                    {{ renderMenu('admin.categories.index', 'fas fa-tags', 'Kategori', 'isSidebarCollapsed', 'admin.categories.*') }}
+                    {{ renderMenu('admin.tables.index', 'fas fa-chair', 'Meja Cafe', 'isSidebarCollapsed', 'admin.tables.*') }}
 
-                <a href="{{ route('admin.categories.index') }}" class="nav-link flex items-center px-4 py-3 {{ request()->routeIs('admin.categories.*') ? 'active' : 'text-indigo-100' }}">
-                    <i class="fas fa-tags w-6 text-center text-lg"></i>
-                    <span class="ml-3 font-medium">Kategori</span>
-                </a>
+                    {{ renderLabel('Admin', 'isSidebarCollapsed') }}
+                    {{ renderMenu('admin.users.index', 'fas fa-users-cog', 'Kelola Pegawai', 'isSidebarCollapsed', 'admin.users.*') }}
+                    {{ renderMenu('admin.stores.index', 'fas fa-store', 'Manajemen Gerai', 'isSidebarCollapsed', 'admin.stores.*') }}
+                    {{ renderMenu('admin.reports.index', 'fas fa-chart-line', 'Laporan Keuangan', 'isSidebarCollapsed', 'admin.reports.*') }}
+                @endif
 
-                <a href="{{ route('admin.tables.index') }}" class="nav-link flex items-center px-4 py-3 {{ request()->routeIs('admin.tables.*') ? 'active' : 'text-indigo-100' }}">
-                    <i class="fas fa-chair w-6 text-center text-lg"></i>
-                    <span class="ml-3 font-medium">Meja Cafe</span>
-                </a>
-
-                <p class="px-6 mt-6 mb-2 text-xs font-bold text-indigo-400 uppercase tracking-wider">Laporan</p>
-
-                <a href="{{ route('admin.reports.index') }}" class="nav-link flex items-center px-4 py-3 {{ request()->routeIs('admin.reports.*') ? 'active' : 'text-indigo-100' }}">
-                    <i class="fas fa-chart-line w-6 text-center text-lg"></i>
-                    <span class="ml-3 font-medium">Laporan Keuangan</span>
-                </a>
             </nav>
 
-            {{-- Sidebar Footer (User Info Simple) --}}
-            <div class="p-4 border-t border-indigo-900/50 bg-indigo-950/30">
-                <div class="flex items-center gap-3">
-                    <img class="h-10 w-10 rounded-full object-cover border-2 border-indigo-500"
-                         src="{{ Auth::user()->profile_photo_path ? asset('storage/' . Auth::user()->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=6366F1&color=fff' }}"
-                         alt="Admin">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-white truncate">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-indigo-400 truncate">Administrator</p>
+            {{-- SIDEBAR FOOTER (Profile Mini) --}}
+            <div class="p-4 border-t border-slate-800 bg-slate-950/30">
+                <div class="flex items-center gap-3" :class="isSidebarCollapsed ? 'justify-center' : ''">
+                    <img class="h-9 w-9 rounded-full object-cover border-2 border-indigo-500"
+                         src="{{ Auth::user()->profile_photo_path ? asset('storage/' . Auth::user()->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) . '&background=6366F1&color=fff' }}">
+
+                    <div class="overflow-hidden" :class="isSidebarCollapsed ? 'hidden' : 'block'">
+                        <p class="text-sm font-semibold text-white truncate w-32">{{ Auth::user()->name }}</p>
+                        <p class="text-xs text-slate-400 truncate">{{ ucfirst(Auth::user()->role) }}</p>
                     </div>
-                    {{-- Logout Button Mini --}}
-                    <form method="POST" action="{{ route('logout') }}">
+
+                    <form method="POST" action="{{ route('logout') }}" :class="isSidebarCollapsed ? 'hidden' : 'block'">
                         @csrf
-                        <button type="submit" class="text-indigo-400 hover:text-red-400 transition-colors" title="Logout">
+                        <button type="submit" class="text-slate-500 hover:text-red-400 ml-2" title="Logout">
                             <i class="fas fa-power-off"></i>
                         </button>
                     </form>
@@ -180,165 +198,121 @@
             </div>
         </aside>
 
-        {{-- MAIN CONTENT WRAPPER --}}
-        <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
+        {{-- MAIN CONTENT AREA --}}
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50 transition-all duration-300">
 
-            {{-- HEADER NAVBAR --}}
-            <header class="glass-header z-20 sticky top-0 h-16 flex items-center justify-between px-6">
+            {{-- TOPBAR / HEADER --}}
+            <header class="sticky top-0 z-20 h-16 flex items-center justify-between px-4 sm:px-6 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
 
-                {{-- Left: Mobile Toggle & Page Title --}}
+                {{-- Left: Toggle Sidebar --}}
                 <div class="flex items-center gap-4">
-                    <button @click="sidebarOpen = true" class="text-gray-500 focus:outline-none md:hidden">
-                        <i class="fas fa-bars text-xl"></i>
+                    <button @click="toggleSidebar()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <i class="fas fa-bars text-xl" x-show="!isSidebarCollapsed || window.innerWidth < 1024"></i>
+                        <i class="fas fa-bars-staggered text-xl" x-show="isSidebarCollapsed && window.innerWidth >= 1024" style="display: none;"></i>
                     </button>
-                    <h2 class="text-xl font-bold text-gray-800 tracking-tight hidden md:block">
-                        @yield('title', 'Dashboard')
-                    </h2>
+                    <h2 class="text-lg font-bold text-slate-800 tracking-tight">@yield('title', 'Dashboard')</h2>
                 </div>
 
                 {{-- Right: Actions --}}
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 sm:gap-4">
 
-                    {{-- NOTIFICATION DROPDOWN (AlpineJS) --}}
+                    {{-- Role Badge --}}
+                    <span class="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        {{ Auth::user()->role === 'admin' ? 'Super Admin' : 'Kitchen Staff' }}
+                        @if(Auth::user()->role === 'dapur' && Auth::user()->store)
+                             | {{ Auth::user()->store->name }}
+                        @endif
+                    </span>
+
+                    {{-- Notifications --}}
                     <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-                        <button @click="open = !open; fetchNotificationDetails();" class="relative p-2 text-gray-400 hover:text-indigo-600 transition-colors rounded-full hover:bg-indigo-50">
-                            <i class="fas fa-bell text-xl"></i>
-
-                            {{-- Badge Count --}}
-                            <span id="notification-count-badge" class="hidden absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-500 rounded-full badge-pulse shadow-sm border border-white">0</span>
+                        <button @click="open = !open; fetchNotificationDetails();"
+                                class="relative p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                            <i class="far fa-bell text-xl"></i>
+                            <span id="notification-count-badge" class="hidden absolute top-1 right-1 flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                            </span>
                         </button>
 
-                        {{-- Dropdown Panel --}}
-                        <div x-show="open"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 translate-y-2"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 translate-y-2"
-                             class="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 overflow-hidden"
-                             style="display: none;">
-
-                            <div class="px-4 py-2 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                                <h3 class="text-sm font-bold text-gray-700">Notifikasi Pesanan</h3>
-                                <span class="text-xs text-indigo-500 font-medium cursor-pointer hover:underline">Tandai dibaca</span>
+                        {{-- Dropdown --}}
+                        <div x-show="open" style="display: none;"
+                             x-transition.origin.top.right
+                             class="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-2xl border border-slate-100 py-0 z-50 overflow-hidden">
+                            <div class="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                                <h3 class="text-sm font-bold text-slate-800">Notifikasi Pesanan</h3>
                             </div>
-
-                            <div id="notification-list" class="max-h-64 overflow-y-auto">
-                                {{-- JS will populate this --}}
-                                <div class="p-6 text-center text-gray-400 text-sm">
-                                    <i class="far fa-bell-slash text-2xl mb-2 block"></i>
-                                    Tidak ada notifikasi baru
-                                </div>
+                            <div id="notification-list" class="max-h-64 overflow-y-auto bg-white">
+                                <div class="p-6 text-center text-slate-400 text-sm">Belum ada notifikasi</div>
                             </div>
-
-                            <div class="border-t border-gray-100 p-2">
-                                <a href="{{ route('admin.orders.index') }}" class="block text-center text-sm font-semibold text-indigo-600 hover:bg-indigo-50 py-2 rounded-lg transition-colors">
-                                    Lihat Semua Pesanan
-                                </a>
+                            <div class="border-t border-slate-100 p-2 bg-slate-50">
+                                <a href="{{ route('admin.orders.index') }}" class="block text-center text-xs font-bold text-indigo-600 hover:underline">LIHAT SEMUA</a>
                             </div>
                         </div>
                     </div>
 
-                    {{-- User Profile (Simple Link to Profile) --}}
-                    <a href="{{ route('profile.edit') }}" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all shadow-sm">
-                        <img class="h-6 w-6 rounded-full object-cover" src="{{ Auth::user()->profile_photo_path ? asset('storage/' . Auth::user()->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}" alt="">
-                        <span class="text-sm font-medium text-gray-700">Profil</span>
+                    {{-- Profile --}}
+                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-2">
+                        <img class="h-9 w-9 rounded-full object-cover border border-slate-200"
+                             src="{{ Auth::user()->profile_photo_path ? asset('storage/' . Auth::user()->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name) }}">
                     </a>
                 </div>
             </header>
 
-            {{-- CONTENT SCROLL AREA --}}
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6 fade-in-up">
-                @yield('content')
+            {{-- MAIN CONTENT --}}
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-4 sm:p-6 lg:p-8">
+                <div class="transition-opacity duration-500 ease-in-out opacity-100">
+                    @yield('content')
+                </div>
             </main>
+
         </div>
     </div>
 
-{{-- ... (kode HTML layout sebelumnya tetap sama) ... --}}
-
     @stack('scripts')
 
-    {{-- AUDIO PRELOAD --}}
+    {{-- Audio & Scripts Notifikasi (Sama Seperti Sebelumnya) --}}
     <audio id="notif-sound" src="{{ asset('audio/order_alert.mp3') }}" preload="auto"></audio>
-
-    {{-- JAVASCRIPT LOGIC (POLLING & NOTIFIKASI) --}}
     <script>
-        // --- 1. SETUP AUDIO ---
-        function playNotificationSound() {
-            const audio = document.getElementById('notif-sound');
-            if (audio) {
-                audio.play().catch(e => console.log("Audio play blocked:", e));
-            }
-        }
-
-        // --- 2. LOGIKA POLLING DATA ---
+        function playNotificationSound() { const audio = document.getElementById('notif-sound'); if (audio) audio.play().catch(e => console.log("Audio blocked:", e)); }
         const detailUrl = "{{ route('admin.notifications.details') }}";
-        const orderIndexUrl = "{{ route('admin.orders.index') }}"; // URL Halaman Pesanan Masuk
-
+        const orderIndexUrl = "{{ route('admin.orders.index') }}";
         const badgeElement = document.getElementById('notification-count-badge');
         const sidebarDot = document.getElementById('sidebar-notification-dot');
         const notificationList = document.getElementById('notification-list');
-
         let lastCount = 0;
 
-        // Fetch Data dari Server
         async function fetchNotificationDetails() {
             try {
                 const response = await fetch(detailUrl);
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) throw new Error('Network err');
                 const data = await response.json();
-
                 updateUI(data.notifications, data.count);
                 return data.count;
-            } catch (error) {
-                console.error("Polling error:", error);
-                return 0;
-            }
+            } catch (error) { console.error("Polling error:", error); return 0; }
         }
 
-        // Update Tampilan UI (Badge & Dropdown)
         function updateUI(notifications, count) {
-            // Update Badges
             if (count > 0) {
-                if(badgeElement) {
-                    badgeElement.innerText = count;
-                    badgeElement.classList.remove('hidden');
-                }
+                if(badgeElement) badgeElement.classList.remove('hidden');
                 if(sidebarDot) sidebarDot.classList.remove('hidden');
             } else {
                 if(badgeElement) badgeElement.classList.add('hidden');
                 if(sidebarDot) sidebarDot.classList.add('hidden');
             }
-
-            // Update Dropdown Content
             if (notificationList) {
                 if (notifications.length === 0) {
-                    notificationList.innerHTML = `
-                        <div class="p-6 text-center text-gray-400 text-sm">
-                            <i class="far fa-bell-slash text-2xl mb-2 block"></i>
-                            Tidak ada notifikasi baru
-                        </div>`;
+                    notificationList.innerHTML = `<div class="p-6 text-center text-slate-400 text-sm"><i class="far fa-bell-slash text-2xl mb-2 block opacity-50"></i>Tidak ada notifikasi baru</div>`;
                 } else {
                     let html = '';
                     notifications.forEach(n => {
-                        // Pastikan n.url ada (dari controller)
                         html += `
-                        <a href="${n.url}" class="block px-4 py-3 hover:bg-indigo-50 border-b border-gray-100 last:border-0 transition-colors group">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-sm font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                                        #${n.order_number}
-                                    </p>
-                                    <p class="text-xs text-gray-500 mt-0.5">Meja: <span class="font-medium text-gray-700">${n.table_name}</span></p>
-                                </div>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
-                                    BARU
-                                </span>
+                        <a href="${n.url}" class="block px-4 py-3 hover:bg-indigo-50 border-b border-slate-50 transition-colors">
+                            <div class="flex justify-between">
+                                <p class="text-sm font-bold text-slate-800">#${n.order_number}</p>
+                                <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
                             </div>
-                            <p class="text-[10px] text-gray-400 mt-2 flex items-center gap-1">
-                                <i class="far fa-clock"></i> ${n.time_ago}
-                            </p>
+                            <p class="text-xs text-slate-500 mt-1">Meja: ${n.table_name} <span class="mx-1">•</span> ${n.time_ago}</p>
                         </a>`;
                     });
                     notificationList.innerHTML = html;
@@ -346,54 +320,26 @@
             }
         }
 
-        // Polling Interval
         function startPolling() {
-            // Cek pertama kali
             fetchNotificationDetails().then(count => { lastCount = count; });
-
-            // Loop Cek setiap 5 detik
             setInterval(async () => {
                 const currentCount = await fetchNotificationDetails();
-
-                // JIKA ADA PESANAN BARU MASUK
                 if (currentCount > lastCount) {
                     playNotificationSound();
-
                     const newOrders = currentCount - lastCount;
-
-                    // TAMPILKAN TOAST YANG BISA DIKLIK
                     const Toast = Swal.mixin({
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 5000,
-                        timerProgressBar: true,
-                        background: '#1e1b4b', // Warna Indigo Gelap
-                        color: '#ffffff',
+                        toast: true, position: 'top-end', showConfirmButton: false, timer: 5000, timerProgressBar: true,
+                        background: '#1e293b', color: '#fff',
                         didOpen: (toast) => {
-                            toast.addEventListener('mouseenter', Swal.stopTimer)
-                            toast.addEventListener('mouseleave', Swal.resumeTimer)
-
-                            // --- FITUR KLIK NOTIFIKASI ---
-                            toast.addEventListener('click', () => {
-                                window.location.href = orderIndexUrl; // Redirect ke halaman pesanan
-                            });
-                            toast.style.cursor = 'pointer'; // Ubah kursor jadi tangan
+                            toast.addEventListener('click', () => { window.location.href = orderIndexUrl; });
+                            toast.style.cursor = 'pointer';
                         }
                     });
-
-                    Toast.fire({
-                        icon: 'warning',
-                        iconColor: '#fbbf24', // Amber
-                        title: 'Pesanan Baru Masuk!',
-                        text: `${newOrders} pesanan menunggu konfirmasi. Klik untuk lihat.`
-                    });
+                    Toast.fire({ icon: 'info', title: 'Pesanan Baru!', text: `${newOrders} pesanan menunggu.` });
                 }
                 lastCount = currentCount;
-
-            }, 5000); // Cek setiap 5 detik
+            }, 5000);
         }
-
         document.addEventListener('DOMContentLoaded', startPolling);
     </script>
 </body>
