@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // Tambahkan ini agar rapi
 
 class User extends Authenticatable
 {
@@ -21,7 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
         'profile_photo_path',
+        'store_id', // Pastikan ini ada (Sudah benar)
     ];
 
     /**
@@ -45,5 +48,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * --- RELASI KE TABEL STORE (GERAI) ---
+     * Bagian ini yang sebelumnya HILANG dan menyebabkan error.
+     */
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    /**
+     * --- FUNGSI TAMBAHAN UNTUK CEK ROLE ---
+     */
+
+    // Cek apakah user adalah Admin
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    // Cek apakah user adalah Dapur (Kitchen)
+    public function isKitchen(): bool
+    {
+        return $this->role === 'dapur';
     }
 }

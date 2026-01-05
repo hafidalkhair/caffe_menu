@@ -7,17 +7,17 @@
     {{-- HEADER SECTION --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 fade-in-up">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800 tracking-tight">Ringkasan Operasional</h2>
-            <p class="text-sm text-gray-500 mt-1">Pantau performa resto Anda hari ini.</p>
+            <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Ringkasan Operasional</h2>
+            <p class="text-sm text-slate-500 mt-1">Pantau performa resto Anda hari ini.</p>
         </div>
 
         {{-- FILTER WAKTU (Integrated UI) --}}
-        <div class="bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-2">
+        <div class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2">
             <form id="time-filter-form" action="{{ route('admin.dashboard') }}" method="GET" class="flex items-center gap-2">
                 <div class="relative">
-                    <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     <select name="time_filter" id="time-filter" onchange="toggleCustomDates();"
-                        class="pl-8 pr-8 py-2 bg-gray-50 hover:bg-gray-100 border-none rounded-lg text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-indigo-500 transition-colors cursor-pointer appearance-none">
+                        class="pl-8 pr-8 py-2 bg-slate-50 hover:bg-slate-100 border-none rounded-lg text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500 transition-colors cursor-pointer appearance-none outline-none">
                         <option value="today" {{ $timeFilter == 'today' ? 'selected' : '' }}>Hari Ini</option>
                         <option value="yesterday" {{ $timeFilter == 'yesterday' ? 'selected' : '' }}>Kemarin</option>
                         <option value="this_week" {{ $timeFilter == 'this_week' ? 'selected' : '' }}>Minggu Ini</option>
@@ -28,11 +28,11 @@
                 </div>
 
                 {{-- Custom Date Inputs (Hidden by default) --}}
-                <div id="custom-dates" class="hidden flex items-center gap-2 border-l border-gray-200 pl-2">
-                    <input type="date" name="start_date" value="{{ $customDate['start'] ?? '' }}" class="py-1.5 px-2 bg-gray-50 border border-gray-200 rounded-md text-xs">
-                    <span class="text-gray-400">-</span>
-                    <input type="date" name="end_date" value="{{ $customDate['end'] ?? '' }}" class="py-1.5 px-2 bg-gray-50 border border-gray-200 rounded-md text-xs">
-                    <button type="submit" class="p-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 shadow-sm">
+                <div id="custom-dates" class="hidden flex items-center gap-2 border-l border-slate-200 pl-2">
+                    <input type="date" name="start_date" value="{{ $customDate['start'] ?? '' }}" class="py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-600 focus:border-indigo-500 outline-none">
+                    <span class="text-slate-400">-</span>
+                    <input type="date" name="end_date" value="{{ $customDate['end'] ?? '' }}" class="py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-600 focus:border-indigo-500 outline-none">
+                    <button type="submit" class="p-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 shadow-sm transition-colors">
                         <i class="fas fa-check text-xs"></i>
                     </button>
                 </div>
@@ -44,7 +44,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 fade-in-up" style="animation-delay: 0.1s;">
 
         {{-- Card 1: Menunggu --}}
-        <a href="{{ route('admin.orders.index') }}" class="group bg-white p-5 rounded-2xl border border-gray-100 hover:border-amber-300 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
+        <a href="{{ route('admin.orders.index') }}" class="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-amber-300 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
             <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <i class="fas fa-clock text-6xl text-amber-500"></i>
             </div>
@@ -52,16 +52,16 @@
                 <div class="p-2 bg-amber-50 rounded-lg text-amber-600">
                     <i class="fas fa-hourglass-half"></i>
                 </div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Menunggu</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Menunggu</span>
             </div>
-            <h3 class="text-3xl font-extrabold text-gray-800 mb-1 group-hover:text-amber-600 transition-colors">
+            <h3 class="text-3xl font-extrabold text-slate-800 mb-1 group-hover:text-amber-600 transition-colors">
                 {{ $pendingCount ?? 0 }}
             </h3>
-            <p class="text-xs text-gray-400">Belum dibayar/dikonfirmasi</p>
+            <p class="text-xs text-slate-400">Belum dibayar/dikonfirmasi</p>
         </a>
 
         {{-- Card 2: Diproses --}}
-        <a href="{{ route('admin.orders.index') }}" class="group bg-white p-5 rounded-2xl border border-gray-100 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
+        <a href="{{ route('admin.orders.index') }}" class="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-indigo-300 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
             <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <i class="fas fa-fire-burner text-6xl text-indigo-500"></i>
             </div>
@@ -69,16 +69,16 @@
                 <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                     <i class="fas fa-concierge-bell"></i>
                 </div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Diproses</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Diproses</span>
             </div>
-            <h3 class="text-3xl font-extrabold text-gray-800 mb-1 group-hover:text-indigo-600 transition-colors">
+            <h3 class="text-3xl font-extrabold text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors">
                 {{ $inProgressCount ?? 0 }}
             </h3>
-            <p class="text-xs text-gray-400">Sedang dimasak/diantar</p>
+            <p class="text-xs text-slate-400">Sedang dimasak/diantar</p>
         </a>
 
         {{-- Card 3: Selesai --}}
-        <a href="{{ route('admin.orders.history') }}" class="group bg-white p-5 rounded-2xl border border-gray-100 hover:border-green-300 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
+        <a href="{{ route('admin.orders.history') }}" class="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-green-300 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
             <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <i class="fas fa-check-circle text-6xl text-green-500"></i>
             </div>
@@ -86,16 +86,16 @@
                 <div class="p-2 bg-green-50 rounded-lg text-green-600">
                     <i class="fas fa-check"></i>
                 </div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Selesai</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Selesai</span>
             </div>
-            <h3 class="text-3xl font-extrabold text-gray-800 mb-1 group-hover:text-green-600 transition-colors">
+            <h3 class="text-3xl font-extrabold text-slate-800 mb-1 group-hover:text-green-600 transition-colors">
                 {{ $completedCount ?? 0 }}
             </h3>
-            <p class="text-xs text-gray-400">Transaksi sukses</p>
+            <p class="text-xs text-slate-400">Transaksi sukses</p>
         </a>
 
         {{-- Card 4: Dibatalkan --}}
-        <a href="{{ route('admin.orders.history') }}" class="group bg-white p-5 rounded-2xl border border-gray-100 hover:border-red-300 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
+        <a href="{{ route('admin.orders.history') }}" class="group bg-white p-5 rounded-2xl border border-slate-100 hover:border-red-300 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
             <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <i class="fas fa-ban text-6xl text-red-500"></i>
             </div>
@@ -103,12 +103,12 @@
                 <div class="p-2 bg-red-50 rounded-lg text-red-600">
                     <i class="fas fa-times"></i>
                 </div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Batal</span>
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Batal</span>
             </div>
-            <h3 class="text-3xl font-extrabold text-gray-800 mb-1 group-hover:text-red-600 transition-colors">
+            <h3 class="text-3xl font-extrabold text-slate-800 mb-1 group-hover:text-red-600 transition-colors">
                 {{ $canceledCount ?? 0 }}
             </h3>
-            <p class="text-xs text-gray-400">Expired / Ditolak</p>
+            <p class="text-xs text-slate-400">Expired / Ditolak</p>
         </a>
     </div>
 
@@ -116,16 +116,16 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 fade-in-up" style="animation-delay: 0.2s;">
 
         {{-- Revenue Big Card --}}
-        <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+        <div class="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h3 class="text-lg font-bold text-gray-800">Analitik Pendapatan</h3>
-                    <p class="text-xs text-gray-400">Tren pemasukan 7 hari terakhir.</p>
+                    <h3 class="text-lg font-bold text-slate-800">Analitik Pendapatan</h3>
+                    <p class="text-xs text-slate-400">Tren pemasukan 7 hari terakhir.</p>
                 </div>
                 {{-- Legend Custom --}}
                 <div class="flex items-center gap-2 text-xs">
                     <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                    <span class="text-gray-500">Revenue</span>
+                    <span class="text-slate-500">Revenue</span>
                 </div>
             </div>
             <div class="h-64 w-full">
@@ -155,10 +155,10 @@
                 <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-red-50 rounded-full z-0"></div>
                 <div class="relative z-10">
                     <p class="text-red-500 text-xs font-bold uppercase tracking-wider mb-1">Potensi Hilang (Batal)</p>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-1">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-1">
                         Rp{{ number_format($filteredLoss ?? 0, 0, ',', '.') }}
                     </h3>
-                    <p class="text-xs text-gray-400 mt-1">
+                    <p class="text-xs text-slate-400 mt-1">
                         Dari {{ $canceledCount ?? 0 }} pesanan dibatalkan.
                     </p>
                 </div>
@@ -235,7 +235,7 @@
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: '#1e1b4b',
+                        backgroundColor: '#1e293b', // Slate-800
                         padding: 12,
                         titleFont: { size: 13, family: "'Plus Jakarta Sans', sans-serif" },
                         bodyFont: { size: 13, family: "'Plus Jakarta Sans', sans-serif" },
