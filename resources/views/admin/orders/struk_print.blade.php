@@ -1,149 +1,163 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>Struk Pesanan #{{ $order->id }}</title>
+    <title>Struk Pesanan #{{ $order->order_number }}</title>
     <style>
-        /* CSS Khusus untuk Struk Thermal */
+        /* CSS Khusus untuk Struk Thermal (58mm) */
         body {
             width: 58mm;
-            /* Lebar kertas termal umum */
             margin: 0;
             padding: 0;
-            font-family: monospace;
+            font-family: 'Courier New', Courier, monospace; /* Monospace agar rapi */
             font-size: 9pt;
             color: #000;
         }
-
         @page {
-            size: auto;
+            size: 58mm auto;
             margin: 0;
         }
-
         .container {
-            padding: 5px;
+            padding: 2px 5px;
         }
-
         .text-center {
             text-align: center;
         }
-
+        .text-right {
+            text-align: right;
+        }
         .divider {
             border-top: 1px dashed #000;
             margin: 5px 0;
         }
-
         .item-row {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3px;
         }
-
         .item-qty {
-            width: 10%;
+            width: 15%;
+            font-weight: bold;
         }
-
         .item-name {
-            width: 60%;
+            width: 55%;
+            word-wrap: break-word;
         }
-
         .item-total {
             width: 30%;
             text-align: right;
         }
-
         .total-ringkasan {
             font-weight: bold;
+            font-size: 10pt;
+            margin-top: 5px;
+        }
+        .meta-info {
+            font-size: 8pt;
         }
 
-        /* Media Print untuk mencegah elemen navbar/footer muncul */
+        /* Sembunyikan elemen browser saat print */
         @media print {
-
-            html,
-            body {
+            html, body {
                 width: 58mm;
+                height: auto;
                 overflow: hidden;
             }
         }
     </style>
 </head>
 
-<body onload="window.print()">
+{{-- LOGIKA PHP UNTUK MENGHITUNG TOTAL SESUAI TAMPILAN --}}
+@php
+    $user = Auth::user();
+
+    // Default: Ambil total global dari database
+    $displayTotal = $order->total_price;
+
+    // Jika Dapur: Hitung ulang total berdasarkan item yang tampil (karena item sudah difilter di Controller)
+    if ($user->role === 'dapur') {
+        $displayTotal = $order->orderItems->sum(function($item) {
+            return $item->price * $item->quantity;
+        });
+    }
+@endphp
+
+<body>
     <div class="container">
         <div class="text-center">
             <strong>CAFEKU</strong><br>
-            Jl. Contoh No. 123, Kota Anda<br>
-            (021) 12345678<br>
+            Jl. Raya Contoh No. 123<br>
+            Jakarta Selatan<br>
         </div>
 
         <div class="divider"></div>
 
-        <div>
-            ID Pesanan: {{ $order->order_number }}<br>
-            Nama Pelanggan: {{ $order->customer_name ?? 'Anonim' }}<br>
-            Meja: {{ $order->table->name ?? 'Dine In' }}<br>
-            Waktu: {{ \Carbon\Carbon::parse($order->created_at)->format('d M y, H:i') }}<br>
-            Kasir: Admin/Pelayan (Nama Admin Login Saat Ini)<br>
+        <div class="meta-info">
+            ID: #{{ $order->order_number }}<br>
+            Tgl: {{ $order->created_at->format('d/m/y H:i') }}<br>
+            Meja: {{ $order->table->name ?? 'Takeaway' }}<br>
+            Cust: {{ substr($order->customer_name ?? 'Guest', 0, 15) }}<br>
+            Kasir: {{ substr($user->name, 0, 15) }}
         </div>
 
         <div class="divider"></div>
 
         {{-- Detail Item --}}
+        {{-- Loop ini otomatis menggunakan data yang sudah difilter oleh Controller (MenuController / OrderController) --}}
         @foreach ($order->orderItems as $item)
             <div class="item-row">
                 <span class="item-qty">{{ $item->quantity }}x</span>
-                <span class="item-name">{{ $item->menu->name ?? 'Item Dihapus' }}</span>
-                <span class="item-total">Rp{{ number_format($item->price * $item->quantity, 0, ',', '.') }}</span>
+                <span class="item-name">
+                    {{ $item->menu->name ?? 'Item Dihapus' }}
+                    @if($item->notes)
+                        <br><i style="font-size: 7pt;">({{ $item->notes }})</i>
+                    @endif
+                </span>
+                <span class="item-total">{{ number_format($item->price * $item->quantity, 0, ',', '.') }}</span>
             </div>
         @endforeach
 
         <div class="divider"></div>
 
         {{-- Ringkasan --}}
-        <div class="item-row">
-            <span>Subtotal</span>
-            <span class="item-total">Rp{{ number_format($order->total_price, 0, ',', '.') }}</span>
-        </div>
-
-        {{-- Tambahkan baris Diskon/Pajak jika ada --}}
-
-        <div class="divider"></div>
-
         <div class="item-row total-ringkasan">
-            <span>TOTAL BAYAR</span>
-            <span class="item-total">Rp{{ number_format($order->total_price, 0, ',', '.') }}</span>
+            <span>TOTAL</span>
+            <span class="item-total">Rp{{ number_format($displayTotal, 0, ',', '.') }}</span>
         </div>
 
         <div class="divider"></div>
 
-        <div>
-            Metode Bayar: {{ strtoupper($order->payment_method) }}
-            ({{ $order->status === 'completed' || $order->status === 'processing' || $order->status === 'delivering' ? 'LUNAS' : 'BELUM LUNAS' }})
+        <div class="meta-info text-center">
+            Bayar: {{ strtoupper($order->payment->method ?? 'TUNAI') }}<br>
+            Status: {{ $order->payment->status == 'paid' ? 'LUNAS' : 'BELUM BAYAR' }}
         </div>
 
-        @if ($order->note)
-            <div style="margin-top: 5px;">
-                Catatan: {{ $order->note }}
+        @if ($order->notes)
+            <div class="divider"></div>
+            <div class="meta-info">
+                <strong>Catatan:</strong><br>
+                {{ $order->notes }}
             </div>
         @endif
 
         <div class="divider"></div>
 
-        <div class="text-center">
-            TERIMA KASIH ATAS KUNJUNGAN ANDA
+        <div class="text-center" style="margin-top: 10px; font-size: 8pt;">
+            Terima Kasih<br>
+            Silakan Datang Kembali
         </div>
-
+        <br>
     </div>
 
     <script>
-        // Panggil window.print() saat body dimuat
+        // Otomatis print saat halaman dimuat
         window.onload = function() {
             window.print();
-            // Opsional: Kembali ke halaman sebelumnya setelah mencetak
+            // Cek jika browser mendukung event afterprint untuk close tab
             window.onafterprint = function() {
-                window.history.back();
+                window.close();
             };
         }
     </script>
 </body>
-
 </html>
