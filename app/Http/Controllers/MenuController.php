@@ -33,7 +33,7 @@ class MenuController extends Controller
             ->selectRaw('SUM(order_items.quantity) as total_sold')
 
             // Grouping: Harus menyertakan semua kolom non-aggregate
-            ->groupBy('menus.id', 'menus.name', 'menus.description', 'menus.price', 'menus.image', 'menus.category_id', 'menus.created_at', 'menus.updated_at')
+            ->groupBy('menus.id', 'menus.name', 'menus.description', 'menus.price', 'menus.image', 'menus.category_id', 'menus.store_id','menus.created_at', 'menus.updated_at')
 
             ->orderByDesc('total_sold')
             ->limit(10) // Ambil 10 menu teratas
